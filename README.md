@@ -13,6 +13,9 @@
 ### Some training set data are from TGCA.
 ## Milestone1
 ### Complating "the Emulation Path" coding part;
+* Complating the coding part.
+* complating the construction of the clasifaction of breast cancer.
+
 ### Testing the coding part;
 ## Milestone2
 ### Complating "the Machine Learning Path" coding part;
