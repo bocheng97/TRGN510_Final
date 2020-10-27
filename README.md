@@ -1,5 +1,4 @@
-# <center> <h1> Project outlines
-</h1> </center>
+# <center> <h1> Project outlines </h1> </center>
 ## Title
 ### Reproducing "Machine learning for RNA sequencing-based intrinsic subtyping of breast cancer."        
 ## Author
