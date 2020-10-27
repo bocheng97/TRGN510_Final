@@ -1,5 +1,6 @@
 # Project outlines
-## Reproducing "Machine learning for RNA sequencing-based intrinsic subtyping of breast cancer."        --Bo Cheng
+## Reproducing "Machine learning for RNA sequencing-based intrinsic subtyping of breast cancer."        
+## Author: Bo Cheng
 ## Overview 
 ### 1. In this project, I will try to reproduce a machine learning process from an open-access paper, "Machine learning for RNA sequencing-based intrinsic subtyping of breast cancer". 
 ### 2.This project is trying to improve PAM50, taking advantage of PAM50, and trying to make it adapt to RNA-seq.
