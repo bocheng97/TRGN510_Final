@@ -25,14 +25,14 @@
 * TCGA-BRCA / TCGA-BH-A0B6
 
 ## Milestone1
-### Complating "the Emulation Path" coding part;
+### 1.Complating "the Emulation Path" coding part;
 * Complating the coding part.
 * complating the construction of the clasifaction of breast cancer.
 
-### Testing the coding part;
+### 2.Testing the coding part;
 ## Milestone2
-### Complating "the Machine Learning Path" coding part;
-### Testing the coding part with the GSE96058 data set(training set).
+### 1.Complating "the Machine Learning Path" coding part;
+### 2.Testing the coding part with the GSE96058 data set(training set).
 ## Before handing in
 ### Using the model to do the evaluation. 
 ## Deliverable
