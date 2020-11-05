@@ -1,0 +1,62 @@
+---
+title: "TRGN_510_final"
+author: "bo"
+date: "11/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+rm(list = ls())
+```
+
+### make a new function to put each htseqcounts data as a df
+```{r}
+predata <- function(val) {
+  df = myfilelist[val]
+  df <- as.data.frame(df)
+  df <- data.frame(df[,-1], row.names = df[,1])
+  colnames(df) <- myfilename[val]
+  print(df)
+}
+```
+## First we put all stage_i datasets
+```{r}
+mypath <- "./training_data/stage_i_htseqdata/"
+myfilepath <- list.files("./training_data/stage_i_htseqdata/", pattern = "htseq", full.names = TRUE)
+myfilename <- list.files(mypath, pattern = "htseq")
+```
+
+```{r}
+myfilelist <- lapply(myfilepath, read.table)
+```
+
+```{r}
+p <- predata(1)
+library(dplyr)
+for (i in 2:20){
+  p=merge(p,predata(i),by = 0, all = T)
+  p <- data.frame(p[,-1], row.names = p[,1])
+}
+```
+## Second we put all stage_iia datasets
+```{r}
+mypath <- "training_data/stage_iia_htseqdata/"
+myfilepath <- list.files(mypath,pattern = "htseq", full.names = TRUE)
+myfilename <- list.files(mypath, pattern = "htseq")
+myfilelist <- lapply(myfilepath, read.table)
+q <- predata(1)
+library(dplyr)
+for (i in 2:20){
+  q=merge(q,predata(i),by = 0, all = T)
+  q <- data.frame(q[,-1], row.names = q[,1])
+}
+```
+### Then we merge the two stage data
+```{r}
+df_all=merge(p,q,by=0,all=T)
+df_all <- data.frame(df_all[,-1], row.names = df_all[,1])
+```
+
