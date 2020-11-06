@@ -58,5 +58,37 @@ for (i in 2:20){
 ```{r}
 df_all=merge(p,q,by=0,all=T)
 df_all <- data.frame(df_all[,-1], row.names = df_all[,1])
+df_all1111 <- df_all1111[-1,]
+df <- df_all1111
 ```
+## Find the significant genes
+### we add class on the our df_all
+```{r}
+class <- data.frame(condition = factor(rep(c("i","iia"),c(20,20))))
+class
+```
+### DESeq2
+```{r}
+library(DESeq2)
+set.seed(2128)
+vars <- sort(apply(df, 1, var, na.rm = TRUE), decreasing = TRUE)
+data <- df[names(vars)[1:100],]
+nTest <- ceiling(ncol(data) * 0.3)
+ind <- sample(ncol(data),nTest,FALSE)
+```
+### Minimum count is set to 1 
+```{r}
+data.train <- as.matrix(data[ ,-ind] + 1)
+data.test <- as.matrix(data[ ,ind] + 1)
+classtr <- DataFrame(condition = class[-ind, ])
+classts <- DataFrame(condition = class[ind, ])
+```
+### Now we have the traning and test sets
+```{r}
+data.trainS4 = DESeqDataSetFromMatrix(countData = data.train, colData = classtr,
+design = formula(~condition))
+data.testS4 = DESeqDataSetFromMatrix(countData = data.test, colData = classts,
+design = formula(~condition))
+```
+
 
