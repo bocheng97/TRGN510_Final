@@ -8,9 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-```{r}
-rm(list = ls())
-```
+
 
 ### make a new function to put each htseqcounts data as a df
 ```{r}
@@ -90,5 +88,148 @@ design = formula(~condition))
 data.testS4 = DESeqDataSetFromMatrix(countData = data.test, colData = classts,
 design = formula(~condition))
 ```
+```{r}
+availableMethods
+```
+### Normalization
+```{r}
+fit <- classify(data = data.trainS4, method = "svmRadial",
+preProcessing = "deseq-rlog", ref = "iia",
+control = trainControl(method = "repeatedcv", number = 2,
+repeats = 2, classProbs = TRUE))
+show(fit)
+```
+### Voom based Nearest Shrunken Centroids
+```{r}
+set.seed(2128)
+fit <- classify(data = data.trainS4, method = "voomNSC",
+normalize = "deseq", ref = "iia",
+control = voomControl(tuneLength = 20))
+trained(fit) 
+```
+# Support vector machines with radial basis function kernel
+```{r}
+set.seed(2128)
+fit.svm <- classify(data = data.trainS4, method = "svmRadial",
+preProcessing = "deseq-vst", ref = "iia", tuneLength = 10,
+control = trainControl(method = "repeatedcv", number = 5,
+repeats = 10, classProbs = TRUE))
+show(fit.svm)
+```
+```{r}
+trained(fit.svm)
+```
+```{r}
+plot(fit.svm)
+```
+```{r}
+ctrl.svm <- trainControl(method = "repeatedcv", number = 5, repeats = 1)
+ctrl.plda <- discreteControl(method = "repeatedcv", number = 5, repeats = 1,
+tuneLength = 10)
+ctrl.voomDLDA <- voomControl(method = "repeatedcv", number = 5, repeats = 1,
+tuneLength = 10)
+```
 
+```{r}
+fit.svm <- classify(data = data.trainS4, method = "svmRadial",
+preProcessing = "deseq-vst", ref = "iia", tuneLength = 10,
+control = ctrl.svm)
+```
+```{r}
+fit.plda <- classify(data = data.trainS4, method = "PLDA", normalize = "deseq",
+ref = "iia", control = ctrl.plda)
+```
+
+```{r}
+fit.voomDLDA <- classify(data = data.trainS4, method = "voomNSC",
+normalize = "deseq", ref = "iia", control = ctrl.voomDLDA)
+```
+```{r}
+availableMethods()
+```
+```{r}
+trained(fit.voomDLDA)
+```
+```{r}
+pred.svm <- predict(fit.svm, data.testS4)
+pred.svm
+```
+```{r}
+pred.svm <- relevel(pred.svm, ref = "iia")
+actual <- relevel(classts$condition, ref = "iia")
+tbl <- table(Predicted = pred.svm, Actual = actual)
+confusionMatrix(tbl, positive = "iia")
+```
+```{r}
+set.seed(2128)
+# Define control lists.
+ctrl.continuous <- trainControl(method = "repeatedcv", number = 5, repeats = 10)
+ctrl.discrete <- discreteControl(method = "repeatedcv", number = 5, repeats = 10,tuneLength = 10)
+ctrl.voom <- voomControl(method = "repeatedcv",number = 5, repeats = 10,
+tuneLength = 10)
+```
+
+```{r}
+fit.svm <- classify(data = data.trainS4, method = "svmRadial",
+preProcessing = "deseq-vst", ref = "iia", tuneLength = 10,
+control = ctrl.continuous)
+fit.NSC <- classify(data = data.trainS4, method = "pam",
+preProcessing = "deseq-vst", ref = "iia", tuneLength = 10,
+control = ctrl.continuous)
+```
+```{r}
+fit.plda <- classify(data = data.trainS4, method = "PLDA", normalize = "deseq",
+ref = "iia", control = ctrl.discrete)
+fit.plda2 <- classify(data = data.trainS4, method = "PLDA2", normalize = "deseq",
+ref = "iia", control = ctrl.discrete)
+fit.nblda <- classify(data = data.trainS4, method = "NBLDA", normalize = "deseq",
+ref = "iia", control = ctrl.discrete)
+```
+
+
+```{r}
+#fit.voomDLDA <- classify(data = data.trainS4, method = "voomDLDA",
+#normalize = "deseq", ref = "iia", control = ctrl.voom)
+fit.voomNSC <- classify(data = data.trainS4, method = "voomNSC",
+normalize = "deseq", ref = "iia", control = ctrl.voom)
+```
+
+```{r}
+pred.svm <- predict(fit.svm, data.testS4)
+pred.NSC <- predict(fit.NSC, data.testS4)
+```
+
+```{r}
+pred.svm
+pred.NSC
+```
+```{r}
+selectedGenes(fit.voomNSC)
+```
+
+```{r}
+set.seed(2128)
+ctrl <- discreteControl(method = "repeatedcv", number = 5, repeats = 2,
+tuneLength = 10)
+# PLDA without power transformation
+fit <- classify(data = data.trainS4, method = "PLDA", normalize = "deseq",
+ref = "iia", control = ctrl)
+show(fit)
+```
+```{r}
+method(fit) <- "PLDA2"
+show(fit)
+```
+```{r}
+ref(fit) <- "i"
+normalization(fit) <- "TMM"
+metaData(fit)
+```
+```{r}
+fit <-update(fit)
+```
+
+```{r}
+show(fit)
+```
 
