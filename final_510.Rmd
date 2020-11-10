@@ -60,12 +60,12 @@ df_all1111 <- df_all1111[-1,]
 df <- df_all1111
 ```
 ## Find the significant genes
-### we add class on the our df_all
+### we create class of the our df_all
 ```{r}
 class <- data.frame(condition = factor(rep(c("i","iia"),c(20,20))))
 class
 ```
-### DESeq2
+### DESeq2, using DESeq2 to create input data for training and testing
 ```{r}
 library(DESeq2)
 set.seed(2128)
@@ -91,13 +91,14 @@ design = formula(~condition))
 ```{r}
 availableMethods
 ```
-### Normalization
+### Normalization and training the model in MLSeq
 ```{r}
 fit <- classify(data = data.trainS4, method = "svmRadial",
 preProcessing = "deseq-rlog", ref = "iia",
 control = trainControl(method = "repeatedcv", number = 2,
 repeats = 2, classProbs = TRUE))
 show(fit)
+trained(fit)
 ```
 ### Voom based Nearest Shrunken Centroids
 ```{r}
@@ -107,7 +108,7 @@ normalize = "deseq", ref = "iia",
 control = voomControl(tuneLength = 20))
 trained(fit) 
 ```
-# Support vector machines with radial basis function kernel
+### trainning dataset with method "svmRadial"
 ```{r}
 set.seed(2128)
 fit.svm <- classify(data = data.trainS4, method = "svmRadial",
@@ -119,9 +120,11 @@ show(fit.svm)
 ```{r}
 trained(fit.svm)
 ```
+### plot the tuning parameters on the model
 ```{r}
 plot(fit.svm)
 ```
+### Defining the control list for selected classifier, so we define all the method MLSeq provided.
 ```{r}
 ctrl.svm <- trainControl(method = "repeatedcv", number = 5, repeats = 1)
 ctrl.plda <- discreteControl(method = "repeatedcv", number = 5, repeats = 1,
@@ -150,6 +153,7 @@ availableMethods()
 ```{r}
 trained(fit.voomDLDA)
 ```
+### Then we train the model with test data we've built.
 ```{r}
 pred.svm <- predict(fit.svm, data.testS4)
 pred.svm
@@ -160,9 +164,9 @@ actual <- relevel(classts$condition, ref = "iia")
 tbl <- table(Predicted = pred.svm, Actual = actual)
 confusionMatrix(tbl, positive = "iia")
 ```
+## Comparing the performance of classifiers
 ```{r}
 set.seed(2128)
-# Define control lists.
 ctrl.continuous <- trainControl(method = "repeatedcv", number = 5, repeats = 10)
 ctrl.discrete <- discreteControl(method = "repeatedcv", number = 5, repeats = 10,tuneLength = 10)
 ctrl.voom <- voomControl(method = "repeatedcv",number = 5, repeats = 10,
@@ -203,10 +207,11 @@ pred.NSC <- predict(fit.NSC, data.testS4)
 pred.svm
 pred.NSC
 ```
+### Determining possible biomarkers using sparse classifiers
 ```{r}
 selectedGenes(fit.voomNSC)
 ```
-
+## Updating an MLSeq object using update
 ```{r}
 set.seed(2128)
 ctrl <- discreteControl(method = "repeatedcv", number = 5, repeats = 2,
