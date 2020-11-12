@@ -7,3 +7,7 @@
 ### 1.I found in the vignette is the "voomDLDA" method, which has errors for now I can't solve, so I just skip this method.
 ### 2.Another thing is the model accuracy is low, maybe I need more dataset.
 ### 3.I need to convert the ensembl_ID into gene_name 
+## What should I do next
+### 1.Clear up my R Markdown
+### 2.Make a table of classfication results for breast tumor data
+### 2.Download more datasets to make the the best method gain more accuracy
