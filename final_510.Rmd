@@ -8,9 +8,12 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
-
-### make a new function to put each htseqcounts data as a df
+### load librarier we need
+```{r}
+library(MLSeq)
+library(DESeq2)
+```
+### Create a new function to put each htseqcounts data as a df
 ```{r}
 predata <- function(val) {
   df = myfilelist[val]
@@ -20,17 +23,18 @@ predata <- function(val) {
   print(df)
 }
 ```
-## First we put all stage_i datasets
+## Prepare the input data
+### First we put all stage_i datasets
 ```{r}
 mypath <- "./training_data/stage_i_htseqdata/"
 myfilepath <- list.files("./training_data/stage_i_htseqdata/", pattern = "htseq", full.names = TRUE)
 myfilename <- list.files(mypath, pattern = "htseq")
 ```
-
+### Use lapply to make a list of our data
 ```{r}
 myfilelist <- lapply(myfilepath, read.table)
 ```
-
+### use for loop to merge datasets
 ```{r}
 p <- predata(1)
 library(dplyr)
@@ -39,7 +43,7 @@ for (i in 2:20){
   p <- data.frame(p[,-1], row.names = p[,1])
 }
 ```
-## Second we put all stage_iia datasets
+### Second we put all stage_iia datasets
 ```{r}
 mypath <- "training_data/stage_iia_htseqdata/"
 myfilepath <- list.files(mypath,pattern = "htseq", full.names = TRUE)
@@ -52,22 +56,21 @@ for (i in 2:20){
   q <- data.frame(q[,-1], row.names = q[,1])
 }
 ```
-### Then we merge the two stage data
+### Then we merge the two stage df together
 ```{r}
 df_all=merge(p,q,by=0,all=T)
 df_all <- data.frame(df_all[,-1], row.names = df_all[,1])
-df_all1111 <- df_all1111[-1,]
-df <- df_all1111
+df_all_1 <- df_all_1[-1,]
+df <- df_all_1
 ```
 ## Find the significant genes
-### we create class of the our df_all
+### we create class of the our df_all(the first 20 datasets are stage i data)
 ```{r}
 class <- data.frame(condition = factor(rep(c("i","iia"),c(20,20))))
 class
 ```
-### DESeq2, using DESeq2 to create input data for training and testing
+### DESeq2, using DESeq2 to create input data of training and testing
 ```{r}
-library(DESeq2)
 set.seed(2128)
 vars <- sort(apply(df, 1, var, na.rm = TRUE), decreasing = TRUE)
 data <- df[names(vars)[1:100],]
@@ -88,27 +91,12 @@ design = formula(~condition))
 data.testS4 = DESeqDataSetFromMatrix(countData = data.test, colData = classts,
 design = formula(~condition))
 ```
+### Using availableMethods to see what models we have.
 ```{r}
-availableMethods
+availableMethods()
 ```
-### Normalization and training the model in MLSeq
-```{r}
-fit <- classify(data = data.trainS4, method = "svmRadial",
-preProcessing = "deseq-rlog", ref = "iia",
-control = trainControl(method = "repeatedcv", number = 2,
-repeats = 2, classProbs = TRUE))
-show(fit)
-trained(fit)
-```
-### Voom based Nearest Shrunken Centroids
-```{r}
-set.seed(2128)
-fit <- classify(data = data.trainS4, method = "voomNSC",
-normalize = "deseq", ref = "iia",
-control = voomControl(tuneLength = 20))
-trained(fit) 
-```
-### trainning dataset with method "svmRadial"
+## Normalization and training the model in MLSeq
+### Normalize data using deseq-vst and train dataset with method "svmRadial"
 ```{r}
 set.seed(2128)
 fit.svm <- classify(data = data.trainS4, method = "svmRadial",
@@ -132,28 +120,23 @@ tuneLength = 10)
 ctrl.voomDLDA <- voomControl(method = "repeatedcv", number = 5, repeats = 1,
 tuneLength = 10)
 ```
-
+### svm model
 ```{r}
 fit.svm <- classify(data = data.trainS4, method = "svmRadial",
 preProcessing = "deseq-vst", ref = "iia", tuneLength = 10,
 control = ctrl.svm)
+fit.svm_trained <-trained(fit.svm)
+fit.svm_trained
+plot(fit.svm_trained)
 ```
+### PLDA model
 ```{r}
 fit.plda <- classify(data = data.trainS4, method = "PLDA", normalize = "deseq",
 ref = "iia", control = ctrl.plda)
+fit.plda_trained <- trained(fit.plda)
+fit.plda_trained
 ```
-
-```{r}
-fit.voomDLDA <- classify(data = data.trainS4, method = "voomNSC",
-normalize = "deseq", ref = "iia", control = ctrl.voomDLDA)
-```
-```{r}
-availableMethods()
-```
-```{r}
-trained(fit.voomDLDA)
-```
-### Then we train the model with test data we've built.
+### Then we test the model with test data we've built.
 ```{r}
 pred.svm <- predict(fit.svm, data.testS4)
 pred.svm
@@ -175,27 +158,26 @@ tuneLength = 10)
 
 ```{r}
 fit.svm <- classify(data = data.trainS4, method = "svmRadial",
-preProcessing = "deseq-vst", ref = "iia", tuneLength = 10,
+preProcessing = "deseq-vst", ref = "i", tuneLength = 10,
 control = ctrl.continuous)
 fit.NSC <- classify(data = data.trainS4, method = "pam",
-preProcessing = "deseq-vst", ref = "iia", tuneLength = 10,
+preProcessing = "deseq-vst", ref = "i", tuneLength = 10,
 control = ctrl.continuous)
 ```
 ```{r}
 fit.plda <- classify(data = data.trainS4, method = "PLDA", normalize = "deseq",
-ref = "iia", control = ctrl.discrete)
+ref = "i", control = ctrl.discrete)
 fit.plda2 <- classify(data = data.trainS4, method = "PLDA2", normalize = "deseq",
-ref = "iia", control = ctrl.discrete)
+ref = "i", control = ctrl.discrete)
 fit.nblda <- classify(data = data.trainS4, method = "NBLDA", normalize = "deseq",
-ref = "iia", control = ctrl.discrete)
+ref = "i", control = ctrl.discrete)
 ```
 
 
 ```{r}
-#fit.voomDLDA <- classify(data = data.trainS4, method = "voomDLDA",
-#normalize = "deseq", ref = "iia", control = ctrl.voom)
 fit.voomNSC <- classify(data = data.trainS4, method = "voomNSC",
 normalize = "deseq", ref = "iia", control = ctrl.voom)
+fit.voomNSC
 ```
 
 ```{r}
@@ -218,7 +200,7 @@ ctrl <- discreteControl(method = "repeatedcv", number = 5, repeats = 2,
 tuneLength = 10)
 # PLDA without power transformation
 fit <- classify(data = data.trainS4, method = "PLDA", normalize = "deseq",
-ref = "iia", control = ctrl)
+ref = "i", control = ctrl)
 show(fit)
 ```
 ```{r}
@@ -236,5 +218,8 @@ fit <-update(fit)
 
 ```{r}
 show(fit)
+```
+```{r}
+dld1 = MLearn( mol.biol~., data.trainS4, 1:28)
 ```
 
