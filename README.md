@@ -1,8 +1,7 @@
 # Final project of TRGN 510
 ## Title
 ### Building a classification model of NGS RNA-seq data with MLseq.      
-## Author
-### Bo Cheng
+## Author :Bo Cheng
 ## Overview 
 ### 1. In this project, I try to use a machine learning package, MLSeq from Bioconductor to find out the best model that predicts breast cancer subtype. 
 ### 2. For my project, the machine learning process will use 5-fold cross-validation, and 10 repeats. I use 28 data sets from TCGA to train and test this model using 12 datasets. 
