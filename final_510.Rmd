@@ -7,13 +7,16 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
 ```
-### load librarier we need
+### load libraries we need
 ```{r}
 library(MLSeq)
 library(DESeq2)
+library(dplyr)
 ```
 ### Create a new function to put each htseqcounts data as a df
+### This function can help us input a htseq dataset and make it a right dataframe. 
 ```{r}
 predata <- function(val) {
   df = myfilelist[val]
@@ -25,6 +28,7 @@ predata <- function(val) {
 ```
 ## Prepare the input data
 ### First we put all stage_i datasets
+### We get the filepath and filename first
 ```{r}
 mypath <- "./training_data/stage_i_htseqdata/"
 myfilepath <- list.files("./training_data/stage_i_htseqdata/", pattern = "htseq", full.names = TRUE)
@@ -34,16 +38,15 @@ myfilename <- list.files(mypath, pattern = "htseq")
 ```{r}
 myfilelist <- lapply(myfilepath, read.table)
 ```
-### use for loop to merge datasets
+### Use a loop to merge all the datasets from the filepath
 ```{r}
 p <- predata(1)
-library(dplyr)
 for (i in 2:20){
   p=merge(p,predata(i),by = 0, all = T)
   p <- data.frame(p[,-1], row.names = p[,1])
 }
 ```
-### Second we put all stage_iia datasets
+### Second we put all stage_iia datasets, which is exactly same way as stage_i datasets
 ```{r}
 mypath <- "training_data/stage_iia_htseqdata/"
 myfilepath <- list.files(mypath,pattern = "htseq", full.names = TRUE)
@@ -56,20 +59,25 @@ for (i in 2:20){
   q <- data.frame(q[,-1], row.names = q[,1])
 }
 ```
-### Then we merge the two stage df together
+### Then we merge the two stage df together, and get rid of the summary rows
 ```{r}
 df_all=merge(p,q,by=0,all=T)
 df_all <- data.frame(df_all[,-1], row.names = df_all[,1])
-df_all_1 <- df_all_1[-1,]
+df_all_1 <- df_all[6:nrow(df_all),]
 df <- df_all_1
 ```
-## Find the significant genes
+## Find the top 100 significant genes
 ### we create class of the our df_all(the first 20 datasets are stage i data)
 ```{r}
 class <- data.frame(condition = factor(rep(c("i","iia"),c(20,20))))
 class
 ```
 ### DESeq2, using DESeq2 to create input data of training and testing
+### We use set.seed to get the same results
+### we use sort to find the top 100 gene names
+### we use ceiling to round up to the integer
+### Test datasets : Trainning datasets= 3 : 7
+### We use sample to get a specified size of datasets, here is the test dataset size.
 ```{r}
 set.seed(2128)
 vars <- sort(apply(df, 1, var, na.rm = TRUE), decreasing = TRUE)
@@ -77,7 +85,8 @@ data <- df[names(vars)[1:100],]
 nTest <- ceiling(ncol(data) * 0.3)
 ind <- sample(ncol(data),nTest,FALSE)
 ```
-### Minimum count is set to 1 
+### Minimum count is set to 1 in order to prevent 0 division problem withinclassification models
+### Add condition 
 ```{r}
 data.train <- as.matrix(data[ ,-ind] + 1)
 data.test <- as.matrix(data[ ,ind] + 1)
@@ -91,12 +100,13 @@ design = formula(~condition))
 data.testS4 = DESeqDataSetFromMatrix(countData = data.test, colData = classts,
 design = formula(~condition))
 ```
-### Using availableMethods to see what models we have.
+### Using availableMethods to see what classification algorithm we have.
 ```{r}
 availableMethods()
 ```
 ## Normalization and training the model in MLSeq
-### Normalize data using deseq-vst and train dataset with method "svmRadial"
+### classify helps us do the classification
+### Normalize and transform data using deseq-vst and train dataset with method "svmRadial"
 ```{r}
 set.seed(2128)
 fit.svm <- classify(data = data.trainS4, method = "svmRadial",
@@ -105,6 +115,8 @@ control = trainControl(method = "repeatedcv", number = 5,
 repeats = 10, classProbs = TRUE))
 show(fit.svm)
 ```
+### "trained" function shows us the details of this model
+### We can see what sigma and C used in this model
 ```{r}
 trained(fit.svm)
 ```
@@ -112,42 +124,28 @@ trained(fit.svm)
 ```{r}
 plot(fit.svm)
 ```
-### Defining the control list for selected classifier, so we define all the method MLSeq provided.
-```{r}
-ctrl.svm <- trainControl(method = "repeatedcv", number = 5, repeats = 1)
-ctrl.plda <- discreteControl(method = "repeatedcv", number = 5, repeats = 1,
-tuneLength = 10)
-ctrl.voomDLDA <- voomControl(method = "repeatedcv", number = 5, repeats = 1,
-tuneLength = 10)
-```
-### svm model
-```{r}
-fit.svm <- classify(data = data.trainS4, method = "svmRadial",
-preProcessing = "deseq-vst", ref = "iia", tuneLength = 10,
-control = ctrl.svm)
-fit.svm_trained <-trained(fit.svm)
-fit.svm_trained
-plot(fit.svm_trained)
-```
-### PLDA model
-```{r}
-fit.plda <- classify(data = data.trainS4, method = "PLDA", normalize = "deseq",
-ref = "iia", control = ctrl.plda)
-fit.plda_trained <- trained(fit.plda)
-fit.plda_trained
-```
 ### Then we test the model with test data we've built.
 ```{r}
 pred.svm <- predict(fit.svm, data.testS4)
 pred.svm
 ```
+### We can compare the prediction and the actual level of the datasets.
+### We use relevel to get the prediction and actual level.
+### Use table to make of table of prediction and reality
 ```{r}
 pred.svm <- relevel(pred.svm, ref = "iia")
+pred.svm
 actual <- relevel(classts$condition, ref = "iia")
+actual
 tbl <- table(Predicted = pred.svm, Actual = actual)
+tbl
+```
+### Use confusionMatrix from caret to make a detailed comparision
+```{r}
 confusionMatrix(tbl, positive = "iia")
 ```
-## Comparing the performance of classifiers
+## After showing how to use the MLSeq to make classifier, we try to define the control for the model, so we can compare the model
+### Defining the control list for selected classifier, so we define all the method MLSeq provided.
 ```{r}
 set.seed(2128)
 ctrl.continuous <- trainControl(method = "repeatedcv", number = 5, repeats = 10)
@@ -155,71 +153,89 @@ ctrl.discrete <- discreteControl(method = "repeatedcv", number = 5, repeats = 10
 ctrl.voom <- voomControl(method = "repeatedcv",number = 5, repeats = 10,
 tuneLength = 10)
 ```
-
+### Continuous classifiers, SVM and NSC
 ```{r}
 fit.svm <- classify(data = data.trainS4, method = "svmRadial",
-preProcessing = "deseq-vst", ref = "i", tuneLength = 10,
+preProcessing = "deseq-vst", ref = "iia", tuneLength = 10,
 control = ctrl.continuous)
 fit.NSC <- classify(data = data.trainS4, method = "pam",
-preProcessing = "deseq-vst", ref = "i", tuneLength = 10,
+preProcessing = "deseq-vst", ref = "iia", tuneLength = 10,
 control = ctrl.continuous)
+fit.svm
+fit.NSC
 ```
+### Discrete classifiers
 ```{r}
 fit.plda <- classify(data = data.trainS4, method = "PLDA", normalize = "deseq",
-ref = "i", control = ctrl.discrete)
+ref = "iia", control = ctrl.discrete)
 fit.plda2 <- classify(data = data.trainS4, method = "PLDA2", normalize = "deseq",
-ref = "i", control = ctrl.discrete)
+ref = "iia", control = ctrl.discrete)
 fit.nblda <- classify(data = data.trainS4, method = "NBLDA", normalize = "deseq",
-ref = "i", control = ctrl.discrete)
+ref = "iia", control = ctrl.discrete)
+fit.plda
+fit.plda2
+fit.nblda
 ```
-
-
+### voom-based classifiers
 ```{r}
+#fit.voomDLDA <- classify(data = data.trainS4, method = "voomDLDA",
+#normalize = "deseq", ref = "T", control = ctrl.voom)
 fit.voomNSC <- classify(data = data.trainS4, method = "voomNSC",
 normalize = "deseq", ref = "iia", control = ctrl.voom)
 fit.voomNSC
+trained(fit.voomNSC)
 ```
 
 ```{r}
-pred.svm <- predict(fit.svm, data.testS4)
-pred.NSC <- predict(fit.NSC, data.testS4)
+pred.voomNSC <- predict(fit.voomNSC, data.testS4)
 ```
 
 ```{r}
-pred.svm
-pred.NSC
+pred.voomNSC
 ```
+### Because the best model we found is the voomNSC, so we compare the testing outcomes with the actual level
+```{r}
+pred.svm <- relevel(pred.voomNSC, ref = "iia")
+pred.voomNSC
+actual <- relevel(classts$condition, ref = "iia")
+actual
+tbl <- table(Predicted = pred.voomNSC, Actual = actual)
+tbl
+```
+
+
 ### Determining possible biomarkers using sparse classifiers
 ```{r}
-selectedGenes(fit.voomNSC)
+select.fit.voomNSC <- selectedGenes(fit.voomNSC)
+select.fit.NSC <- selectedGenes(fit.NSC)
+select.fit.plda <- selectedGenes(fit.plda)
+select.fit.plda2 <- selectedGenes(fit.plda2)
+select.fit.NSC
 ```
-## Updating an MLSeq object using update
+### Converting the possible biomarker from selectedGenes into df
+### inner join these biomarker, because NSC model does not have possible biomarker, so we join other three models
 ```{r}
-set.seed(2128)
-ctrl <- discreteControl(method = "repeatedcv", number = 5, repeats = 2,
-tuneLength = 10)
-# PLDA without power transformation
-fit <- classify(data = data.trainS4, method = "PLDA", normalize = "deseq",
-ref = "i", control = ctrl)
-show(fit)
+class(select.fit.voomNSC)
+voomNSC <- data.frame(value = select.fit.voomNSC)
+NSC <- data.frame(value = select.fit.NSC)
+plda <- data.frame(value = select.fit.plda)
+plda2 <- data.frame(value = select.fit.plda2)
+library(plyr)
+at_the_end <- join(plda,plda2, type = "inner")
+at_the_end <- join(at_the_end, voomNSC, type= "inner")
 ```
+### At the end, we add more information to possible biomarkers using BiomaRt
 ```{r}
-method(fit) <- "PLDA2"
-show(fit)
-```
-```{r}
-ref(fit) <- "i"
-normalization(fit) <- "TMM"
-metaData(fit)
-```
-```{r}
-fit <-update(fit)
+library(biomaRt)
+library(dplyr)
+ensembl <- useMart("ensembl")
+datasets <- listDatasets(ensembl)
+mart <- useDataset("hsapiens_gene_ensembl", mart = ensembl)
+res_df.biomarker <- at_the_end 
+res_df.biomarker
+listAttributes(mart)
+Biomarker <- getBM(values = res_df.biomarker$value, filters = "ensembl_gene_id_version", attributes = c("ensembl_gene_id_version", "entrezgene_id", "description", 'hgnc_symbol'), mart = mart)
+Biomarker
 ```
 
-```{r}
-show(fit)
-```
-```{r}
-dld1 = MLearn( mol.biol~., data.trainS4, 1:28)
-```
 
