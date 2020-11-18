@@ -42,7 +42,7 @@ ENSG00000198888.2 | 4535 | mitochondrially encoded NADH:ubiquinone oxidoreductas
 ### What issues I found
 #### 1.In the vignette, I found the "voomDLDA" method, which has errors for now I can't solve, so I just skip this method.
 #### 2.Another thing is the model accuracy is low, maybe I need more dataset.
-#### 3.For the HTML, I still can't make the HTML, the issue is from my input data function, I input my data once a time and print the table, so the HTML will contain so much table, so HTML does not work well. But I still upload the HTML file, because this file I rendered for 9 hours. 
+#### 3.For the HTML, I still can't make the HTML, the issue is from my input data function, I input my data once a time and print the table, so the HTML will contain so much table, so HTML does not work well. The HTML file is more than 100Mb, so I did not put it up.
 ## Repeatability
 ### I use set.seed function, so you can generate the same results as mine.
 ## Deliverable
