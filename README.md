@@ -1,4 +1,4 @@
-# Project outlines
+# Final project of TRGN 510
 ## Title
 ### Building a classification model of NGS RNA-seq data with MLseq.      
 ## Author
