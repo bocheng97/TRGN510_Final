@@ -12,8 +12,8 @@
 ## Data availability
 ### All data are available from [TCGA](https://portal.gdc.cancer.gov/exploration?filters=%7B%22op%22%3A%22and%22%2C%22content%22%3A%5B%7B%22op%22%3A%22in%22%2C%22content%22%3A%7B%22field%22%3A%22cases.disease_type%22%2C%22value%22%3A%5B%22ductal%20and%20lobular%20neoplasms%22%5D%7D%7D%2C%7B%22op%22%3A%22in%22%2C%22content%22%3A%7B%22field%22%3A%22cases.primary_site%22%2C%22value%22%3A%5B%22breast%22%5D%7D%7D%2C%7B%22op%22%3A%22in%22%2C%22content%22%3A%7B%22field%22%3A%22cases.project.program.name%22%2C%22value%22%3A%5B%22TCGA%22%5D%7D%7D%2C%7B%22op%22%3A%22in%22%2C%22content%22%3A%7B%22field%22%3A%22cases.project.project_id%22%2C%22value%22%3A%5B%22TCGA-BRCA%22%5D%7D%7D%2C%7B%22op%22%3A%22in%22%2C%22content%22%3A%7B%22field%22%3A%22cases.samples.sample_type%22%2C%22value%22%3A%5B%22primary%20tumor%22%5D%7D%7D%5D%7D)
 ### The dataset list(Case ID)
-#### The Training data and testing data are from TCGA, 40 datasets in total. Training datasets : testing datasets = 7:3
-#### When we download datasets from TCGA, we can add the htseq file into cart, and download them as a comprised file.
+#### 1.he Training data and testing data are from TCGA, 40 datasets in total. Training datasets : testing datasets = 7:3
+#### 2.When we download datasets from TCGA, we can add the htseq file into cart, and download them as a comprised file.
 ## Milestone1
 ### Progress
 #### Accroding to the Vignette, I've input the data and converted the data to be right dataframes which are ready to do MLSeq. And the next step is to choose a model, do the Normalization and transformation, and use the normalized data to train model.
@@ -42,5 +42,6 @@ ENSG00000198888.2 | 4535 | mitochondrially encoded NADH:ubiquinone oxidoreductas
 ### What issues I found
 #### 1.I found in the vignette is the "voomDLDA" method, which has errors for now I can't solve, so I just skip this method.
 #### 2.Another thing is the model accuracy is low, maybe I need more dataset.
+#### 3.For the HTML, I still can't make the HTML, the issue is from my input data function, I input my data once a time and print the table, so the HTML will contain so much table, so HTML does not work well.
 ## Deliverable
 ### I will use R MarkDown/Notebook/Jupyter to display a understandable codes.
