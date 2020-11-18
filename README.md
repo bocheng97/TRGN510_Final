@@ -45,5 +45,6 @@ ENSG00000198888.2 | 4535 | mitochondrially encoded NADH:ubiquinone oxidoreductas
 #### 3.For the HTML, I still can't make the HTML, the issue is from my input data function, I input my data once a time and print the table, so the HTML will contain so much table, so HTML does not work well. The HTML file is more than 100Mb, so I did not put it up.
 ## Repeatability
 ### I use set.seed function, so you can generate the same results as mine.
+### I upload all the data so that you can reproduce my project.
 ## Deliverable
 ### I will use R MarkDown/Notebook/Jupyter to display an understandable codes.
