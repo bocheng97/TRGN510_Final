@@ -44,7 +44,8 @@ ENSG00000198888.2 | 4535 | mitochondrially encoded NADH:ubiquinone oxidoreductas
 #### 2.Another thing is the model accuracy is low, maybe I need more dataset.
 #### 3.For the HTML, I still can't make the HTML, the issue is from my input data function, I input my data once a time and print the table, so the HTML will contain so much table, so HTML does not work well. The HTML file is more than 100Mb, so I did not put it up.
 ## Repeatability
-### I use set.seed function, so you can generate the same results as mine.
-### I upload all the data so that you can reproduce my project.
+### 1.I use set.seed function, so you can generate the same results as mine.
+### 2.I upload all the data so that you can reproduce my project.
 ## Deliverable
-### I will use R MarkDown/Notebook/Jupyter to display an understandable codes.
+### I will use R MarkDown to display an understandable codes.
+### I tried to render and upload the HTML file, but there is some issue as mentioned in issue part.
