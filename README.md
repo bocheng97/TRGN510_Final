@@ -21,7 +21,7 @@
 #### 1.I use 28 datasets to training all the model offered by MLSeq, and use 12 dataset to test the model.
 #### 2.The best model I have now is "voomNSC", which has about 75% accuracy.
 #### The comparison between prediction and actual class:
-      | Actual | Actual   
+  \    | Actual | Actual   
 ----- |-------|------
 Predicted | iia  | i
 i     | 3    | 5
