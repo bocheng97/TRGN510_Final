@@ -18,7 +18,7 @@
 ### Progress
 #### According to the Vignette, I've input the data and converted the data to be right data frames which are ready to do MLSeq. And the next step is to choose a model, do the Normalization and transformation, and use the normalized data to train model.
 ## Milestone2
-### What I've done
+### 1. What I've done
 #### 1.I use 28 datasets to training all the model offered by MLSeq, and use 12 dataset to test the model.
 #### 2.The best model I have now is "voomNSC", which has about 75% accuracy.
 #### Below is the table of accuracy of the four models
@@ -37,9 +37,9 @@ ensembl_gene_id_version | entrezgene_id | description | hgnc_symbol
 ------------ | ------------- | ---------------- | -----------
 ENSG00000124107.5	 | 6590 | secretory leukocyte peptidase inhibitor [Source:HGNC Symbol;Acc:HGNC:11092] | SLPI
 ENSG00000198888.2 | 4535 | mitochondrially encoded NADH:ubiquinone oxidoreductase core subunit 1 [Source:HGNC Symbol;Acc:HGNC:7455] | MT-ND1
-#### *This is selected possible biomarkers are from inner_join of voomNSC,plda, and plda2 model, there is no possible biomarkers selected from NSC model.
+#### *This is selected possible biomarkers are from inner_join of voomNSC,plda, and plda2 model, there is no possible biomarkers selected from NSC model. However, if NSC model has slected possible biomarkers, we should also do the inner_join.
   
-### What issues I found
+### 2. What issues I found
 #### 1.In the vignette, I found the "voomDLDA" method, which has errors for now I can't solve, so I just skip this method.
 #### 2.Another thing is the model accuracy is low, maybe I need more dataset.
 #### 3.For the HTML, I still can't make the HTML, the issue is from my input data function, I input my data once a time and print the table, so the HTML will contain so much table, so HTML does not work well. The HTML file is more than 100Mb, so I did not put it up.
